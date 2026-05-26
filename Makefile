@@ -16,8 +16,7 @@ install: perms
 
 check: perms
 	echo "1001" | sudo tee -a /etc/supra.allow
-	sudo echo "auth    required pam_unix.so" >> /etc/pam.d/supra
-	sudo echo "account required pam_unix.so" >> /etc/pam.d/supra
+    printf 'auth    required pam_unix.so\naccount required pam_unix.so\n' | sudo tee /etc/pam.d/supra
 	build/supra 0 touch /root/test
 	sudo rm -f /root/test
 
