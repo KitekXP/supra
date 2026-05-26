@@ -14,6 +14,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Setup config
+      run: echo "auth sufficient pam_permit.so" | sudo tee /etc/pam.d/supra
+
+    - name: setup conf
+      run: echo "account sufficient pam_permit.so" | sudo tee -a /etc/pam.d/supra
+
     - name: Install dependencies
       run: sudo apt update && sudo apt install -y build-essential libpam0g-dev
 
