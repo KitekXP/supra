@@ -1,9 +1,9 @@
 CC=gcc
-CFLAGS=-lpam -lpamc -lpam_misc
+CFLAGS=-lpam -lpam_misc
 TARGET=supra.c
 
 build:
-	mkdir build
+	mkdir -p build
 	$(CC) $(TARGET) -o build/supra $(CFLAGS)
 
 perms: build
@@ -15,10 +15,10 @@ install: perms
 	echo "THIS HAS MANY MAJOR SECURITY FLAWS!!!"
 
 check: perms
-	ifeq ($(DEBUG),1)
-	echo "1001" | sudo tee -a /etc/supra.allow
+ifeq ($(DEBUG),1)
+	echo "1001" | sudo tee /etc/supra.allow
 	printf 'auth    required pam_unix.so\naccount required pam_unix.so\n' | sudo tee /etc/pam.d/supra
-	endif
+endif
 	build/supra 0 touch /root/test
 	sudo rm -f /root/test
 
