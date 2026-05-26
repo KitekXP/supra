@@ -15,7 +15,7 @@ install: perms
 	echo "THIS HAS MANY MAJOR SECURITY FLAWS!!!"
 
 check: perms
-	sudo echo "1001" >> /etc/supra.allow
+	echo "1001" | sudo tee -a /etc/supra.allow
 	sudo echo "auth    required pam_unix.so" >> /etc/pam.d/supra
 	sudo echo "account required pam_unix.so" >> /etc/pam.d/supra
 	build/supra 0 touch /root/test
