@@ -4,7 +4,7 @@ TARGET=supra.c
 
 build:
 	mkdir build
-	$(CC) $(CFLAGS) $(TARGET) -o build/supra
+	$(CC) $(TARGET) -o build/supra $(CFLAGS)
 
 perms: build
 	sudo chown root:root build/supra
