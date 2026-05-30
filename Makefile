@@ -1,11 +1,11 @@
 CC=gcc
-CFLAGS=-lpam -lpam_misc
+CFLAGS=-lpam -lpam_misc -std=gnu11 -Wl,--gc-sections
 TARGET=tsux.c
 SHELL=sh
 
 build:
 	mkdir -p build
-	$(CC) $(TARGET) -o build/tsux $(CFLAGS)
+	$(CC) -Oz -s $(TARGET) -o build/tsux $(CFLAGS)
 
 perms: build
 	su -c 'chown root:root build/tsux'
