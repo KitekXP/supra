@@ -153,22 +153,22 @@ int get_privileges(uid_t uid)
 {
     struct passwd *pw = getpwuid(uid);
     if (!pw) {
-        perror("getpwuid");
+        printf("\x1b[0;31mERROR\x1b[0m: getpwuid");
         return -1;
     }
 
     if (initgroups(pw->pw_name, pw->pw_gid) != 0) {
-        perror("initgroups");
+        printf("\x1b[0;31mERROR\x1b[0m: initgroups");
         return -1;
     }
 
     if (setgid(pw->pw_gid) != 0) {
-        perror("setgid");
+        printf("\x1b[0;31mERROR\x1b[0m: setgid");
         return -1;
     }
 
     if (setuid(uid) != 0) {
-        perror("setuid");
+        printf("\x1b[0;31mERROR\x1b[0m: setuid");
         return -1;
     }
 
