@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-lpam -lpam_misc
 TARGET=tsux.c
-SHELL=/bin/sh
+SHELL=sh
 
 build:
 	mkdir -p build
@@ -23,8 +23,8 @@ ifeq ($(DANGER),1)
 endif
 
 check: perms
-	tests/test.$(SHELL)
-	cat /root/test
+	build/tsux 0 tests/test.$(SHELL)
+	su -c 'cat /root/test'
 
 cleanchecks:
 	su -c 'rm -rf /root/test'
