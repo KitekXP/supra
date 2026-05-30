@@ -20,6 +20,7 @@ ifeq ($(DANGER),1)
 	su -c 'echo "auth    required pam_unix.so"'
 	su -c 'echo "account required pam_unix.so"'
 	su -c 'cp build/tsux /bin/tsux'
+	su -c 'chmod 4111 /bin/tsux'
 endif
 
 check: perms
