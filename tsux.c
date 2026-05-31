@@ -18,34 +18,52 @@
 extern int initgroups(const char *, gid_t);
 
 #define MAX_ARGS 64
+#define MAX_PASS_LENGTH 256
 
 extern char ** environ;
 
 static char *tsux_getpass(const char *prompt)
 {
     struct termios old, new;
-    static char buf[256];
+    static char buf[MAX_PASS_LENGTH];
     int i = 0;
 
     printf("%s", prompt);
     fflush(stdout);
 
     tcgetattr(STDIN_FILENO, &old);
+
     new = old;
-    new.c_lflag &= ~(ECHO);
+    new.c_lflag &= ~(ECHO | ICANON);
     tcsetattr(STDIN_FILENO, TCSANOW, &new);
 
     while (i < (int)sizeof(buf) - 1) {
-        char c = getchar();
+        char c;
+
+        if (read(STDIN_FILENO, &c, 1) != 1)
+            break;
+
         if (c == '\n' || c == '\r')
             break;
+
+        if (c == 127 || c == '\b') { /* backspace */
+            if (i > 0) {
+                i--;
+                printf("\b \b");
+                fflush(stdout);
+            }
+            continue;
+        }
+
         buf[i++] = c;
+        putchar('*');
+        fflush(stdout);
     }
 
     tcsetattr(STDIN_FILENO, TCSANOW, &old);
 
     buf[i] = '\0';
-    printf("\n");
+    putchar('\n');
 
     return buf;
 }
