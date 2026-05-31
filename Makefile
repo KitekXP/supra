@@ -1,11 +1,12 @@
 CC=gcc
-CFLAGS=-lpam -lpam_misc -std=gnu11 -Wl,--gc-sections
+CFLAGS=-Oz -s -std=gnu11
+LDFLAGS=-Wl,--gc-sections -lpam -lpam_misc
 TARGET=tsux.c
 SHELL_EXT=sh # HAS TO BE THE EXTENSION FOR SHELL SCRIPTS
 
 build:
 	mkdir -p build
-	$(CC) -Oz -s $(TARGET) -o build/tsux $(CFLAGS)
+	$(CC) $(CFLAGS) $(TARGET) -o build/tsux $(LDFLAGS)
 
 perms: build
 # Gives the permissions required for using setuid() and setgid()
