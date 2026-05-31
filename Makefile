@@ -8,14 +8,14 @@ build:
 	$(CC) -Oz -s $(TARGET) -o build/tsux $(CFLAGS)
 
 perms: build
-	# Gives the permissions required for using setuid() and setgid()
+# Gives the permissions required for using setuid() and setgid()
 	su -c 'chown root:root build/tsux'
 	su -c 'chmod 4111 build/tsux'
 
 install: perms
-	# Warns the user
+# Warns the user
 	echo "I do not recommend installing, but you can use DANGER=1 to install it"
-	# If you really want to you still can
+# If you really want to you still can
 ifeq ($(DANGER),1)
 	su -c 'touch /etc/tsux.allow'
 	su -c 'echo "auth    required pam_unix.so"'
@@ -25,14 +25,14 @@ ifeq ($(DANGER),1)
 endif
 
 check: perms
-	# Checks if the program works by creating a file in /root/ (UNSAFE)
+# Checks if the program works by creating a file in /root/ (UNSAFE)
 	build/tsux 0 tests/test.$(SHELL_EXT)
 	su -c 'cat /root/test'
 
 cleanchecks: clean
-	# Cleans up the checks
+# Cleans up the checks
 	su -c 'rm -rf /root/test'
 
 clean:
-	# Cleans up only the build
+# Cleans up only the build
 	su -c 'rm -rf build'
