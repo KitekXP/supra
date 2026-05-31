@@ -1,21 +1,22 @@
 CC=gcc
 CFLAGS=-lpam -lpam_misc -std=gnu11 -Wl,--gc-sections
 TARGET=tsux.c
-SHELL=sh
+SHELL_EXT=sh # HAS TO BE THE EXTENSION FOR SHELL SCRIPTS
 
 build:
 	mkdir -p build
 	$(CC) -Oz -s $(TARGET) -o build/tsux $(CFLAGS)
 
 perms: build
+	# Gives the permissions required for using setuid() and setgid()
 	su -c 'chown root:root build/tsux'
 	su -c 'chmod 4111 build/tsux'
 
 install: perms
-	echo "DONT INSTALL THIS!!!"
-	echo "THIS HAS MANY MAJOR SECURITY FLAWS!!!"
+	# Warns the user
+	echo "I do not recommend installing, but you can use DANGER=1 to install it"
+	# If you really want to you still can
 ifeq ($(DANGER),1)
-	echo "DANGER OPTION = 1, INSTALLING!!!"
 	su -c 'touch /etc/tsux.allow'
 	su -c 'echo "auth    required pam_unix.so"'
 	su -c 'echo "account required pam_unix.so"'
@@ -24,11 +25,14 @@ ifeq ($(DANGER),1)
 endif
 
 check: perms
-	build/tsux 0 tests/test.$(SHELL)
+	# Checks if the program works by creating a file in /root/ (UNSAFE)
+	build/tsux 0 tests/test.$(SHELL_EXT)
 	su -c 'cat /root/test'
 
 cleanchecks: clean
+	# Cleans up the checks
 	su -c 'rm -rf /root/test'
 
 clean:
+	# Cleans up only the build
 	su -c 'rm -rf build'
