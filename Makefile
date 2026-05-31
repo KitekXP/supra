@@ -27,8 +27,8 @@ check: perms
 	build/tsux 0 tests/test.$(SHELL)
 	su -c 'cat /root/test'
 
-cleanchecks:
+cleanchecks: clean
 	su -c 'rm -rf /root/test'
 
-clean: cleanchecks
+clean:
 	su -c 'rm -rf build'

@@ -56,7 +56,7 @@ static char *tsux_getpass(const char *prompt)
         }
 
         buf[i++] = c;
-        putchar('*');
+        printf("•");
         fflush(stdout);
     }
 
