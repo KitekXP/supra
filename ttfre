@@ -1,0 +1,27 @@
+.
+├── build
+│   ├── docs
+│   │   └── tsux.1
+│   └── tsux
+├── COPYING
+├── docs
+│   └── tsux.md
+├── Makefile
+├── packaging
+│   ├── arch
+│   │   ├── pkg  [error opening dir]
+│   │   ├── PKGBUILD
+│   │   └── src
+│   ├── deb
+│   └── scripts
+├── README.md
+├── src
+│   ├── config.h
+│   └── tsux.c
+├── tests
+│   ├── test.bash
+│   ├── test.sh
+│   └── test.zsh
+└── ttfre
+
+12 directories, 13 files
