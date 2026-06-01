@@ -1,0 +1,26 @@
+pkgname=tsux
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Small alternative to sudo"
+arch=('x86_64')
+url='https://github.com/KitekXP/tsux'
+license=('GPL3')
+depends=('pam')
+makedepends=('gcc' 'make' 'pandoc')
+
+build() {
+    cd "$srcdir/../.."
+    make build docs
+}
+
+package() {
+    cd "$srcdir/../.."
+
+    install -Dm755 build/tsux \
+        "$pkgdir/usr/bin/tsux"
+
+    if [[ -f build/docs/tsux.1 ]]; then
+        install -Dm644 build/docs/tsux.1 \
+            "$pkgdir/usr/share/man/man1/tsux.1"
+    fi
+}

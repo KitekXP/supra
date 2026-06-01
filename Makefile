@@ -86,27 +86,7 @@ deb: build docs
 # -------------------------
 
 arch: build docs
-	rm -rf $(BUILD)/arch
-	mkdir -p $(BUILD)/arch/usr/bin
-	mkdir -p $(BUILD)/arch/usr/share/man/man1
-
-	install -m755 $(BIN) $(BUILD)/arch/usr/bin/$(NAME)
-	install -m644 $(BUILD)/docs/tsux.1 $(BUILD)/arch/usr/share/man/man1/tsux.1
-
-	# metadata for pacman
-	echo "pkgname = $(NAME)" > $(BUILD)/arch/.PKGINFO
-	echo "pkgver = $(VERSION)" >> $(BUILD)/arch/.PKGINFO
-	echo "pkgdesc = Small alternative to sudo" >> $(BUILD)/arch/.PKGINFO
-	echo "url = https://github.com/KitekXP/tsux" >> $(BUILD)/arch/.PKGINFO
-	echo "builddate = $(shell date +%s)" >> $(BUILD)/arch/.PKGINFO
-	echo "packager = KitekXP" >> $(BUILD)/arch/.PKGINFO
-	echo "arch = x86_64" >> $(BUILD)/arch/.PKGINFO
-	echo "license = GPL-3.0" >> $(BUILD)/arch/.PKGINFO
-	echo "depend = pam" >> $(BUILD)/arch/.PKGINFO
-	echo "depend = pam_misc" >> $(BUILD)/arch/.PKGINFO
-
-	cd $(BUILD)/arch && \
-	tar --zstd -cf ../../tsux-$(VERSION)-x86_64.pkg.tar.zst .PKGINFO usr
+	cd packaging/arch && makepkg -f
 
 # -------------------------
 # META
