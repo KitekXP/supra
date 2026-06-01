@@ -21,12 +21,14 @@ extern char ** environ;
 
 static char *tsux_getpass(const char *prompt)
 {
-	// Define variables needed later
-	
+	// Termios settings
     struct termios old, new;
+    // Set the maximum password length
     static char buf[MAX_PASS_LENGTH];
+    // Set i to 0 for the loop
     int i = 0;
 
+	// Print the prompt
     printf("%s", prompt);
     fflush(stdout);
 
@@ -36,7 +38,6 @@ static char *tsux_getpass(const char *prompt)
     new.c_lflag &= ~(ECHO | ICANON);
     tcsetattr(STDIN_FILENO, TCSANOW, &new);
 
-	// I won't... if it works don't touch it 
     while (i < (int)sizeof(buf) - 1) {
         char c;
 
@@ -69,6 +70,7 @@ static char *tsux_getpass(const char *prompt)
     return buf;
 }
 
+// A custom conversation function for pam
 static int tsux_conv(int num_msg,
                      const struct pam_message **msg,
                      struct pam_response **resp,
@@ -85,6 +87,7 @@ static int tsux_conv(int num_msg,
         switch (msg[i]->msg_style) {
 
         case PAM_PROMPT_ECHO_OFF: {
+        	// Set the custom prompt
             char *pw = tsux_getpass("\x1b[0;32mpass\x1b[0m=> ");
             if (!pw)
                 return PAM_CONV_ERR;
@@ -94,6 +97,7 @@ static int tsux_conv(int num_msg,
         }
 
         case PAM_PROMPT_ECHO_ON: {
+        	// In case pam doesn't let the program use a custom prompt
             char buf[MAX_PASS_LENGTH];
 
             printf("%s", msg[i]->msg);
@@ -126,7 +130,7 @@ static struct pam_conv conv = {
     NULL
 };
 
-// Look at the name bruh
+// Prints help
 int print_help() {
     printf("\x1b[0;35mTsUX\x1b[0m\n");
     printf("\x1b[0;32mUsage:\x1b[0m\n");
@@ -134,15 +138,25 @@ int print_help() {
     return 0;
 }
 
+// Checks if the uid is allowed to use tsux
 int uid_allow_check(uid_t uid) {
 	// Opens the file to check if the user is allowed to use tsux
     FILE *f = fopen("/etc/tsux.allow", "r");
     if (!f) return 0;
 
+	// Set the maximum number of uids in the file
     char line[MAX_NUM_UIDS];
 
     while (fgets(line, sizeof(line), f)) {
-        uid_t allowed = (uid_t)atoi(line);
+        char *end;
+        unsigned long allowed = strtoul(line, &end, 10);
+
+        // Print an error message in case the program can't get the file contents
+        if (*end != '\0') {
+        	printf("\x1b[0;31mERROR\x1b[0m: Can't get the list of allowed users");
+        	return 1;
+        }
+            
         if (allowed == uid) {
             fclose(f);
             return 1;
@@ -184,6 +198,7 @@ int get_privileges(uid_t uid)
         return -1;
     }
 
+	// There go some error handling ifs
     if (initgroups(pw->pw_name, pw->pw_gid) != 0) {
         printf("\x1b[0;31mERROR\x1b[0m: initgroups");
         return -1;
@@ -203,6 +218,7 @@ int get_privileges(uid_t uid)
     return 0;
 }
 
+// For running commands like whoami and id
 int minimal_exec(char *command) {
 	// Setup a minimal environment for non user commands
     char * minimal_env[] = {
@@ -224,29 +240,23 @@ int minimal_exec(char *command) {
         _exit(1);
     }
 
+	// Error handling
     if (pid < 0) {
         printf("\x1b[0;31mERROR\x1b[0m: can't fork process");
         return -1;
     }
 
-    wait(NULL);
+	// Wait for the forked proccess to end
+    int status;
+    waitpid(pid, &status, 0);
     return 0;
 }
 
 // The exec function that uses the forwarded env and is for user specified commands
-int full_exec(uid_t uid, char *shell, char **argv) {
+int full_exec(char *shell, char **argv) {
     pid_t pid = fork();
 
     if (pid == 0) {
-    	// Get data about the user
-        struct passwd *pw = getpwuid(uid);
-        if (!pw) _exit(1);
-
-        // Setup the uid, gid and groups
-        initgroups(pw->pw_name, pw->pw_gid);
-        setgid(pw->pw_gid);
-        setuid(uid);
-
         // Join argv[2...] into one string
         size_t len = 0;
         for (int i = 2; argv[i]; i++)
@@ -280,34 +290,45 @@ int full_exec(uid_t uid, char *shell, char **argv) {
 }
 
 // Debug function for printing info
-int user_info() {
-	printf("Current user:\n");
-	minimal_exec("/bin/whoami");
-	printf("\n");
-	printf("User id info:\n");
-	minimal_exec("/bin/id");
-	printf("\n");
-	return 0;
-}
+//int user_info() {
+//	printf("Current user:\n");
+//	minimal_exec("/bin/whoami");
+//	printf("\n");
+//	printf("User id info:\n");
+//	minimal_exec("/bin/id");
+//	printf("\n");
+//	return 0;
+//}
 
 // Converts a uid to a user default shell
-char * uid2shell(uid_t uid) {
+char * getshell(uid_t uid) {
+	// Get user info by uid
     struct passwd * pw = getpwuid(uid);
-    if (!pw || !pw->pw_shell) return "/bin/sh";
+    // Check if the program got the info, else return the default value
+    if (!pw) {
+    	return "err";
+    } if (!pw->pw_shell) {
+    	return "/bin/sh";
+    }
 	
     return pw->pw_shell;
 }
 
 // Coneverts a username to a uid
 int nam2uid(char * name) {
+	// Get user info by username
     struct passwd * pw = getpwnam(name);
+    // Check if the program got the info
     if (!pw) return -1;
+    
     return pw->pw_uid;
 }
 
 // Converts a uid to a username
 char * uid2nam(uid_t uid) {
+	// Get user info by uid
     struct passwd * pw = getpwuid(uid);
+    // Check if the program got the info
     if (!pw || !pw->pw_name) return NULL;
 
     return strdup(pw->pw_name);
@@ -340,15 +361,33 @@ int main(int argc, char ** argv) {
 	    printf("\x1b[0;31mERROR\x1b[0m: Auth failed\n");
 	    return 1;
 	}
+	// Should also free if successful
+	free(user);
 
 	// Get the target user's uid
-	uid_t loginto = (uid_t)atoi(argv[1]);
+	char *end;
+	unsigned long loginto = strtoul(argv[1], &end, 10);
+
+	// Check if the user's id is handled correctly, just in case
+	if (*end != '\0') {
+		printf("\x1b[0;31mERROR\x1b[0m: Can't get user's id\n");
+		return 1;
+	}
+	    
 
 	// Elevate the privileges
 	if (get_privileges(loginto) != 0) return 1;
 
+	// Check if there are errors when using getshell()
+	char * usershell = getshell(loginto);
+
+	if (strcmp(usershell, "err") == 0 ) {
+		printf("\x1b[0;31mERROR\x1b[0m: program is trying to get the shell of a user that doesn't exist");
+		return -1;
+	}
+	
 	// Exec the command specified by the user
-	full_exec(loginto, uid2shell(loginto), argv);
+	full_exec(getshell(loginto), argv);
 	
 	return 0;
 }
