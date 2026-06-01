@@ -32,6 +32,17 @@ build:
 run: build
 	$(BIN)
 
+deb-clean:
+	rm -rf packaging/deb
+
+arch-clean:
+	rm -rf packaging/arch/tsux \
+		      packaging/arch/tsux.1 \
+		      packaging/arch/COPYING
+	rm -rf packaging/arch/pkg
+	rm -rf packaging/arch/src
+	rm -rf packaging/arch/tsux-$(VERSION)-1-x86_64.pkg.tar.zst
+
 clean:
 	rm -rf $(BUILD)
 
