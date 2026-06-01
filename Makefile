@@ -32,7 +32,7 @@ build:
 run: build
 	$(BIN)
 
-clean: arch-clean
+clean:
 	rm -rf $(BUILD)
 
 # -------------------------
@@ -62,42 +62,44 @@ uninstall:
 # -------------------------
 
 deb: build docs
-	rm -rf $(BUILD)/deb
-	mkdir -p $(BUILD)/deb/DEBIAN
-	mkdir -p $(BUILD)/deb/usr/bin
-	mkdir -p $(BUILD)/deb/usr/share/man/man1
+	rm -rf packaging/deb
+	mkdir -p packaging/deb/DEBIAN
+	mkdir -p packaging/deb/usr/bin
+	mkdir -p packaging/deb/usr/share/man/man1
 
-	install -m755 $(BIN) $(BUILD)/deb/usr/bin/$(NAME)
-	install -m644 $(BUILD)/docs/tsux.1 $(BUILD)/deb/usr/share/man/man1/tsux.1
+	install -m755 $(BIN) packaging/deb/usr/bin/$(NAME)
+	install -m644 $(BUILD)/docs/tsux.1 packaging/deb/usr/share/man/man1/tsux.1
 
-	printf "Package: tsux\n" > $(BUILD)/deb/DEBIAN/control
-	printf "Version: $(VERSION)\n" >> $(BUILD)/deb/DEBIAN/control
-	printf "Section: utils\n" >> $(BUILD)/deb/DEBIAN/control
-	printf "Priority: optional\n" >> $(BUILD)/deb/DEBIAN/control
-	printf "Architecture: amd64\n" >> $(BUILD)/deb/DEBIAN/control
-	printf "Maintainer: KitekXP\n" >> $(BUILD)/deb/DEBIAN/control
-	printf "Description: Small alternative to sudo\n" >> $(BUILD)/deb/DEBIAN/control
-	printf "Homepage: https://github.com/KitekXP/tsux\n" >> $(BUILD)/deb/DEBIAN/control
+	printf "Package: tsux\n" > packaging/deb/DEBIAN/control
+	printf "Version: $(VERSION)\n" >> packaging/deb/DEBIAN/control
+	printf "Section: utils\n" >> packaging/deb/DEBIAN/control
+	printf "Priority: optional\n" >> packaging/deb/DEBIAN/control
+	printf "Architecture: amd64\n" >> packaging/deb/DEBIAN/control
+	printf "Maintainer: KitekXP\n" >> packaging/deb/DEBIAN/control
+	printf "Description: Small alternative to sudo\n" >> packaging/deb/DEBIAN/control
+	printf "Homepage: https://github.com/KitekXP/tsux\n" >> packaging/deb/DEBIAN/control
 
-	dpkg-deb --build $(BUILD)/deb tsux_$(VERSION)_amd64.deb
+	dpkg-deb --build packaging/deb packaging/deb/tsux_$(VERSION)_amd64.deb
 
 # -------------------------
 # ARCH PACKAGE
 # -------------------------
 
 arch: build docs
+	rm -f packaging/arch/tsux \
+	      packaging/arch/tsux.1 \
+	      packaging/arch/COPYING
+
 	cp build/tsux packaging/arch/
 	cp build/docs/tsux.1 packaging/arch/
 	cp COPYING packaging/arch/
 
 	cd packaging/arch && makepkg -f
-
-	rm -f packaging/arch/tsux \
-	      packaging/arch/tsux.1 \
-	      packaging/arch/COPYING
+	cd ../..
 
 # -------------------------
 # META
 # -------------------------
 
 package: deb arch
+	
