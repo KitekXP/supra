@@ -77,7 +77,7 @@ deb: build docs
 	mkdir -p packaging/deb/usr/bin
 	mkdir -p packaging/deb/usr/share/man/man1
 
-	install -m4111 build/tsux packaging/deb/usr/bin/tsux
+	sudo install -o root -g root -m4111 build/tsux packaging/deb/usr/bin/tsux
 	install -m644 $(BUILD)/docs/tsux.1 packaging/deb/usr/share/man/man1/tsux.1
 
 	printf "Package: tsux\n" > packaging/deb/DEBIAN/control

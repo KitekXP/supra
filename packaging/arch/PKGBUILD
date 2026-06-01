@@ -10,7 +10,7 @@ source=('tsux' 'tsux.1' 'COPYING')
 sha256sums=('SKIP' 'SKIP' 'SKIP')
 
 package() {
-    install -Dm4111 "$srcdir/tsux" \
+    sudo install -o root -g root -m 4111 "$srcdir/tsux" \
         "$pkgdir/usr/bin/tsux"
 
     install -Dm644 "$srcdir/tsux.1" \
