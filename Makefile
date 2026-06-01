@@ -17,7 +17,7 @@ PREFIX?=/usr/local
 # -------------------------
 
 .PHONY: all build clean run docs install uninstall install-docs \
-        deb arch package
+        deb arch package arch-clean deb-clean
 
 all: build
 
@@ -33,7 +33,7 @@ run: build
 	$(BIN)
 
 deb-clean:
-	rm -rf packaging/deb
+	rm -rf packaging/deb/*
 
 arch-clean:
 	rm -rf packaging/arch/tsux \
@@ -43,7 +43,7 @@ arch-clean:
 	rm -rf packaging/arch/src
 	rm -rf packaging/arch/tsux-$(VERSION)-1-x86_64.pkg.tar.zst
 
-clean:
+clean: deb-clean arch-clean
 	rm -rf $(BUILD)
 
 # -------------------------
@@ -73,7 +73,6 @@ uninstall:
 # -------------------------
 
 deb: build docs
-	rm -rf packaging/deb
 	mkdir -p packaging/deb/DEBIAN
 	mkdir -p packaging/deb/usr/bin
 	mkdir -p packaging/deb/usr/share/man/man1
