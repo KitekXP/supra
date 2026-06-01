@@ -32,7 +32,7 @@ build:
 run: build
 	$(BIN)
 
-clean:
+clean: arch-clean
 	rm -rf $(BUILD)
 
 # -------------------------
@@ -86,7 +86,15 @@ deb: build docs
 # -------------------------
 
 arch: build docs
+	cp build/tsux packaging/arch/
+	cp build/docs/tsux.1 packaging/arch/
+	cp COPYING packaging/arch/
+
 	cd packaging/arch && makepkg -f
+
+	rm -f packaging/arch/tsux \
+	      packaging/arch/tsux.1 \
+	      packaging/arch/COPYING
 
 # -------------------------
 # META

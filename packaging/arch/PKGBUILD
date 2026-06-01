@@ -6,16 +6,16 @@ arch=('x86_64')
 url='https://github.com/KitekXP/tsux'
 license=('GPL3')
 depends=('pam')
-source=()
-sha256sums=()
+source=('tsux' 'tsux.1' 'COPYING')
+sha256sums=('SKIP' 'SKIP' 'SKIP')
 
 package() {
-    install -Dm755 ../../build/tsux \
+    install -Dm755 "$srcdir/tsux" \
         "$pkgdir/usr/bin/tsux"
 
-    install -Dm644 ../../build/docs/tsux.1 \
+    install -Dm644 "$srcdir/tsux.1" \
         "$pkgdir/usr/share/man/man1/tsux.1"
 
-    install -Dm644 ../../COPYING \
+    install -Dm644 "$srcdir/COPYING" \
         "$pkgdir/usr/share/licenses/tsux/COPYING"
 }
