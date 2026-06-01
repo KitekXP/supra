@@ -13,7 +13,13 @@ perms: build
 	su -c 'chown root:root build/tsux'
 	su -c 'chmod 4111 build/tsux'
 
-install: perms
+builddocs:
+	pandoc -s -t man docs/tsux.md -o build/docs/tsux.1
+
+installdocs:
+	su -c 'cp build/docs/tsux.1 /usr/share/man/man1/'
+
+install: perms installdocs
 # Warns the user
 	echo "I do not recommend installing, but you can use DANGER=1 to install it"
 # If you really want to you still can
@@ -30,10 +36,13 @@ check: perms
 	build/tsux 0 tests/test.$(SHELL_EXT)
 	su -c 'cat /root/test'
 
+cleandocs:
+	rm -rf build/docs
+
 cleanchecks: clean
 # Cleans up the checks
 	su -c 'rm -rf /root/test'
 
-clean:
+clean: cleandocs
 # Cleans up only the build
 	su -c 'rm -rf build'
