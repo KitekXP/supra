@@ -1,48 +1,115 @@
 CC=gcc
-CFLAGS=-Oz -s -std=gnu11
-LDFLAGS=-Wl,--gc-sections -lpam -lpam_misc
-TARGET=tsux.c
-SHELL_EXT=sh # HAS TO BE THE EXTENSION FOR SHELL SCRIPTS
+
+CFLAGS=-O2 -std=gnu11 -Wall -Wextra
+LDFLAGS=-Wl,--gc-sections
+LDLIBS=-lpam -lpam_misc
+
+NAME=tsux
+VERSION=1.0.0
+
+BUILD=build
+BIN=$(BUILD)/$(NAME)
+
+PREFIX?=/usr/local
+
+# -------------------------
+# DEFAULT
+# -------------------------
+
+.PHONY: all build clean run docs install uninstall install-docs \
+        deb arch package
+
+all: build
+
+# -------------------------
+# BUILD
+# -------------------------
 
 build:
-	mkdir -p build
-	$(CC) $(CFLAGS) $(TARGET) -o build/tsux $(LDFLAGS)
+	mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) src/tsux.c -o $(BIN) $(LDFLAGS) $(LDLIBS)
 
-perms: build
-# Gives the permissions required for using setuid() and setgid()
-	su -c 'chown root:root build/tsux'
-	su -c 'chmod 4111 build/tsux'
+run: build
+	$(BIN)
 
-builddocs:
-	pandoc -s -t man docs/tsux.md -o build/docs/tsux.1
+clean:
+	rm -rf $(BUILD)
 
-installdocs:
-	su -c 'cp build/docs/tsux.1 /usr/share/man/man1/'
+# -------------------------
+# DOCS
+# -------------------------
 
-install: perms installdocs
-# Warns the user
-	echo "I do not recommend installing, but you can use DANGER=1 to install it"
-# If you really want to you still can
-ifeq ($(DANGER),1)
-	su -c 'touch /etc/tsux.allow'
-	su -c 'echo "auth    required pam_unix.so"'
-	su -c 'echo "account required pam_unix.so"'
-	su -c 'cp build/tsux /bin/tsux'
-	su -c 'chmod 4111 /bin/tsux'
-endif
+docs:
+	mkdir -p $(BUILD)/docs
+	pandoc -s -t man docs/tsux.md -o $(BUILD)/docs/tsux.1
 
-check: perms
-# Checks if the program works by creating a file in /root/ (UNSAFE)
-	build/tsux 0 tests/test.$(SHELL_EXT)
-	su -c 'cat /root/test'
+# -------------------------
+# INSTALL (SAFE ONLY)
+# -------------------------
 
-cleandocs:
-	rm -rf build/docs
+install: build
+	install -Dm755 $(BIN) $(PREFIX)/bin/$(NAME)
 
-cleanchecks: clean
-# Cleans up the checks
-	su -c 'rm -rf /root/test'
+install-docs: docs
+	install -Dm644 $(BUILD)/docs/tsux.1 $(PREFIX)/share/man/man1/tsux.1
 
-clean: cleandocs
-# Cleans up only the build
-	su -c 'rm -rf build'
+uninstall:
+	rm -f $(PREFIX)/bin/$(NAME)
+	rm -f $(PREFIX)/share/man/man1/tsux.1
+
+# -------------------------
+# DEBIAN PACKAGE
+# -------------------------
+
+deb: build docs
+	rm -rf $(BUILD)/deb
+	mkdir -p $(BUILD)/deb/DEBIAN
+	mkdir -p $(BUILD)/deb/usr/bin
+	mkdir -p $(BUILD)/deb/usr/share/man/man1
+
+	install -m755 $(BIN) $(BUILD)/deb/usr/bin/$(NAME)
+	install -m644 $(BUILD)/docs/tsux.1 $(BUILD)/deb/usr/share/man/man1/tsux.1
+
+	printf "Package: tsux\n" > $(BUILD)/deb/DEBIAN/control
+	printf "Version: $(VERSION)\n" >> $(BUILD)/deb/DEBIAN/control
+	printf "Section: utils\n" >> $(BUILD)/deb/DEBIAN/control
+	printf "Priority: optional\n" >> $(BUILD)/deb/DEBIAN/control
+	printf "Architecture: amd64\n" >> $(BUILD)/deb/DEBIAN/control
+	printf "Maintainer: KitekXP\n" >> $(BUILD)/deb/DEBIAN/control
+	printf "Description: Small alternative to sudo\n" >> $(BUILD)/deb/DEBIAN/control
+	printf "Homepage: https://github.com/KitekXP/tsux\n" >> $(BUILD)/deb/DEBIAN/control
+
+	dpkg-deb --build $(BUILD)/deb tsux_$(VERSION)_amd64.deb
+
+# -------------------------
+# ARCH PACKAGE
+# -------------------------
+
+arch: build docs
+	rm -rf $(BUILD)/arch
+	mkdir -p $(BUILD)/arch/usr/bin
+	mkdir -p $(BUILD)/arch/usr/share/man/man1
+
+	install -m755 $(BIN) $(BUILD)/arch/usr/bin/$(NAME)
+	install -m644 $(BUILD)/docs/tsux.1 $(BUILD)/arch/usr/share/man/man1/tsux.1
+
+	# metadata for pacman
+	echo "pkgname = $(NAME)" > $(BUILD)/arch/.PKGINFO
+	echo "pkgver = $(VERSION)" >> $(BUILD)/arch/.PKGINFO
+	echo "pkgdesc = Small alternative to sudo" >> $(BUILD)/arch/.PKGINFO
+	echo "url = https://github.com/KitekXP/tsux" >> $(BUILD)/arch/.PKGINFO
+	echo "builddate = $(shell date +%s)" >> $(BUILD)/arch/.PKGINFO
+	echo "packager = KitekXP" >> $(BUILD)/arch/.PKGINFO
+	echo "arch = x86_64" >> $(BUILD)/arch/.PKGINFO
+	echo "license = GPL-3.0" >> $(BUILD)/arch/.PKGINFO
+	echo "depend = pam" >> $(BUILD)/arch/.PKGINFO
+	echo "depend = pam_misc" >> $(BUILD)/arch/.PKGINFO
+
+	cd $(BUILD)/arch && \
+	tar --zstd -cf ../../tsux-$(VERSION)-x86_64.pkg.tar.zst .PKGINFO usr
+
+# -------------------------
+# META
+# -------------------------
+
+package: deb arch
