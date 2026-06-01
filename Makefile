@@ -22,6 +22,35 @@ PREFIX?=/usr/local
 all: build
 
 # -------------------------
+# HELP
+# -------------------------
+
+help:
+	@echo "tsux build system"
+	@echo ""
+	@echo "Targets:"
+	@echo "  make build          Build binary"
+	@echo "  make run            Build and run"
+	@echo "  make clean          Remove all build artifacts"
+	@echo "  make docs           Generate man page"
+	@echo ""
+	@echo "  make install        Install to $(PREFIX)"
+	@echo "  make uninstall      Remove installed files"
+	@echo "  make install-docs   Install man page"
+	@echo ""
+	@echo "  make deb            Build Debian package"
+	@echo "  make arch           Build Arch package"
+	@echo "  make package        Build both deb and arch"
+	@echo ""
+	@echo "  make deb-clean      Clean Debian packaging"
+	@echo "  make arch-clean     Clean Arch packaging"
+	@echo ""
+	@echo "Variables:"
+	@echo "  PREFIX=$(PREFIX)"
+	@echo "  CC=$(CC)"
+	@echo "  VERSION=$(VERSION)"
+
+# -------------------------
 # BUILD
 # -------------------------
 
