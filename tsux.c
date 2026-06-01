@@ -275,7 +275,8 @@ int full_exec(char *shell, char **argv) {
 
 		// Make it use a shell for parsing
         char *sh_argv[] = { shell, "-c", cmd, NULL };
-
+		free(cmd);
+		
 		// Execute using execve()
         execve(shell, sh_argv, environ);
 
@@ -306,7 +307,7 @@ char * getshell(uid_t uid) {
     struct passwd * pw = getpwuid(uid);
     // Check if the program got the info, else return the default value
     if (!pw) {
-    	return "err";
+    	return NULL;
     } if (!pw->pw_shell) {
     	return "/bin/sh";
     }
@@ -346,12 +347,12 @@ int main(int argc, char ** argv) {
 	// Check if the user is allowed to elevate
 	if (!uid_allow_check(getuid())) { 
 		printf("\x1b[0;31mERROR\x1b[0m: user id not in /etc/tsux.allow\n");
-		return 1;
+		return 3;
 	}
 
 	// Get the username
 	char *user = uid2nam(getuid());
-	if (!user) return 1;
+	if (!user) return 3;
 
 	// Authenticate the user
 	if (!authenticate(user)) {
@@ -361,7 +362,7 @@ int main(int argc, char ** argv) {
 	    printf("\x1b[0;31mERROR\x1b[0m: Auth failed\n");
 	    return 1;
 	}
-	// Should also free if successful
+	// Should also freed if successful
 	free(user);
 
 	// Get the target user's uid
@@ -371,7 +372,7 @@ int main(int argc, char ** argv) {
 	// Check if the user's id is handled correctly, just in case
 	if (*end != '\0') {
 		printf("\x1b[0;31mERROR\x1b[0m: Can't get user's id\n");
-		return 1;
+		return 3;
 	}
 	    
 
@@ -381,13 +382,13 @@ int main(int argc, char ** argv) {
 	// Check if there are errors when using getshell()
 	char * usershell = getshell(loginto);
 
-	if (strcmp(usershell, "err") == 0 ) {
+	if (!usershell) {
 		printf("\x1b[0;31mERROR\x1b[0m: program is trying to get the shell of a user that doesn't exist");
-		return -1;
+		return 3;
 	}
 	
 	// Exec the command specified by the user
-	full_exec(getshell(loginto), argv);
+	full_exec(usershell, argv);
 	
 	return 0;
 }
