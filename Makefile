@@ -77,7 +77,7 @@ deb: build docs
 	mkdir -p packaging/deb/usr/bin
 	mkdir -p packaging/deb/usr/share/man/man1
 
-	sudo install -o root -g root -m4111 build/tsux packaging/deb/usr/bin/tsux
+	sudo install -m755 build/tsux packaging/deb/usr/bin/tsux
 	install -m644 $(BUILD)/docs/tsux.1 packaging/deb/usr/share/man/man1/tsux.1
 
 	printf "Package: tsux\n" > packaging/deb/DEBIAN/control
@@ -88,6 +88,9 @@ deb: build docs
 	printf "Maintainer: KitekXP\n" >> packaging/deb/DEBIAN/control
 	printf "Description: Small alternative to sudo\n" >> packaging/deb/DEBIAN/control
 	printf "Homepage: https://github.com/KitekXP/tsux\n" >> packaging/deb/DEBIAN/control
+
+	printf "#!/bin/sh\nset -e\n\nchmod 4111 /usr/bin/tsux\n\nexit 0\n" >> packaging/deb/DEBIAN/postinst
+	chmod 755 packaging/deb/DEBIAN/postinst
 
 	dpkg-deb --build packaging/deb packaging/deb/tsux_$(VERSION)_amd64.deb
 

@@ -10,12 +10,12 @@ source=('tsux' 'tsux.1' 'COPYING')
 sha256sums=('SKIP' 'SKIP' 'SKIP')
 
 package() {
-    sudo install -o root -g root -m 4111 "$srcdir/tsux" \
-        "$pkgdir/usr/bin/tsux"
-
     install -Dm644 "$srcdir/tsux.1" \
         "$pkgdir/usr/share/man/man1/tsux.1"
 
     install -Dm644 "$srcdir/COPYING" \
         "$pkgdir/usr/share/licenses/tsux/COPYING"
+        
+    sudo install -o root -g root -Dm 4755 "$srcdir/tsux" \
+        "$pkgdir/usr/bin/tsux"
 }
