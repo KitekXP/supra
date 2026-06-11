@@ -151,8 +151,10 @@ okiz: build docs
 	mkdir --parent package/files/usr/bin
 	mkdir --parent package/files/usr/share/man/man1
 
-	sudo install -m=4111 -o=root -g=root build/tsux package/files/usr/bin/tsux
-	install -m=644 build/docs/tsux.1 package/files/usr/share/man/man1/tsux.1
+	sudo install -m4111 -oroot -groot build/tsux package/files/usr/bin/tsux
+	install -m644 build/docs/tsux.1 package/files/usr/share/man/man1/tsux.1
+
+	sudo tar --zstd -cf tsux.tar.zst package/
 
 # -------------------------
 # META
