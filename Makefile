@@ -72,7 +72,11 @@ arch-clean:
 	rm -rf packaging/arch/src
 	rm -rf packaging/arch/tsux-$(VERSION)-1-x86_64.pkg.tar.zst
 
-clean: deb-clean arch-clean
+okiz-clean:
+	rm -rf package/files
+	rm -rf tsux.tar.zst
+
+clean: deb-clean arch-clean okiz-clean
 	rm -rf $(BUILD)
 
 # -------------------------
@@ -138,6 +142,17 @@ arch: build docs
 
 	cd packaging/arch && makepkg -f
 	cd ../..
+
+# -------------------------
+# OKIZ
+# -------------------------
+
+okiz: build docs
+	mkdir --parent package/files/usr/bin
+	mkdir --parent package/files/usr/share/man/man1
+
+	sudo install -m=4111 -o=root -g=root build/tsux package/files/usr/bin/tsux
+	install -m=644 build/docs/tsux.1 package/files/usr/share/man/man1/tsux.1
 
 # -------------------------
 # META
