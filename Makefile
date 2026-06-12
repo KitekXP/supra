@@ -1,8 +1,16 @@
 CC=gcc
 
-CFLAGS=-O2 -std=gnu11 -Wall -Wextra
-LDFLAGS=-Wl,--gc-sections
-LDLIBS=-lpam -lpam_misc
+# 1. Point to your custom OpenPAM staging path relative to your project root
+OPENPAM_STAGE=../shared-libs/openpam/package/files/usr
+
+# 2. Add OpenPAM specific include paths to CFLAGS
+CFLAGS=-O2 -std=gnu11 -Wall -Wextra -I$(OPENPAM_STAGE)/include
+
+# 3. Build-time (-L) looks into the relative path, runtime (-Wl,-rpath) targets /usr/lib
+LDFLAGS=-Wl,--gc-sections -L$(OPENPAM_STAGE)/lib -Wl,-rpath,/usr/lib
+
+# 4. OpenPAM doesn't use pam_misc, only link against core libpam
+LDLIBS=-lpam
 
 NAME=tsux
 VERSION=1.0.0
@@ -17,7 +25,7 @@ PREFIX?=/usr/local
 # -------------------------
 
 .PHONY: all build clean run docs install uninstall install-docs \
-        deb arch package arch-clean deb-clean
+        deb arch package arch-clean deb-clean okiz
 
 all: build
 
@@ -41,6 +49,7 @@ help:
 	@echo "  make deb            Build Debian package"
 	@echo "  make arch           Build Arch package"
 	@echo "  make package        Build both deb and arch"
+	@echo "  make okiz           Build Okiz archive"
 	@echo ""
 	@echo "  make deb-clean      Clean Debian packaging"
 	@echo "  make arch-clean     Clean Arch packaging"
@@ -73,7 +82,7 @@ arch-clean:
 	rm -rf packaging/arch/tsux-$(VERSION)-1-x86_64.pkg.tar.zst
 
 okiz-clean:
-	rm -rf package/files
+	rm -rf package/files/usr/bin/tsux
 	rm -rf tsux.tar.zst
 
 clean: deb-clean arch-clean okiz-clean
@@ -160,5 +169,4 @@ okiz: build docs
 # META
 # -------------------------
 
-package: deb arch
-	
+package: deb arch okiz

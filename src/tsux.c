@@ -8,8 +8,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include "security/pam_appl.h"
-#include "security/pam_misc.h"
+#include <security/pam_appl.h>
 #include <grp.h>
 #include <termios.h>
 #include <errno.h>
@@ -28,7 +27,8 @@ static char *tsux_getpass(const char *prompt)
 
     int i = 0;
 
-    printf("%s", prompt);
+    // Highlight the prompt in Bold Yellow
+    printf("\x1b[1;33m%s\x1b[0m", prompt);
     fflush(stdout);
 
     tcgetattr(STDIN_FILENO, &old);
@@ -68,55 +68,34 @@ static char *tsux_getpass(const char *prompt)
     return buf;
 }
 
-static int tsux_conv(int num_msg,
-                     const struct pam_message **msg,
-                     struct pam_response **resp,
-                     void *appdata_ptr)
-{
-    (void)appdata_ptr;
-
+static int tsux_conv(int num_msg, const struct pam_message **msg,
+                     struct pam_response **resp, void *appdata_ptr) {
+    (void)appdata_ptr; // Unused variable safeguard
+    
     *resp = calloc(num_msg, sizeof(struct pam_response));
-    if (!*resp)
-        return PAM_CONV_ERR;
-
-    for (int i = 0; i < num_msg; i++) {
-
-        switch (msg[i]->msg_style) {
-
-        case PAM_PROMPT_ECHO_OFF: {
-            char *pw = tsux_getpass("\x1b[0;32mpass\x1b[0m=> ");
-            if (!pw)
-                return PAM_CONV_ERR;
-
-            (*resp)[i].resp = strdup(pw);
-            free(pw);
-            break;
-        }
-
-        case PAM_PROMPT_ECHO_ON: {
-            char buf[MAX_PASS_LENGTH];
-
-            printf("%s", msg[i]->msg);
-            fflush(stdout);
-
-            if (!fgets(buf, sizeof(buf), stdin))
-                return PAM_CONV_ERR;
-
-            buf[strcspn(buf, "\n")] = 0;
-            (*resp)[i].resp = strdup(buf);
-            break;
-        }
-
-        case PAM_TEXT_INFO:
-            fprintf(stderr, "%s\n", msg[i]->msg);
-            break;
-
-        case PAM_ERROR_MSG:
-            fprintf(stderr, "ERROR: %s\n", msg[i]->msg);
-            break;
-        }
+    if (*resp == NULL) {
+        return PAM_BUF_ERR;
     }
 
+    for (int i = 0; i < num_msg; ++i) {
+        if (msg[i]->msg_style == PAM_PROMPT_ECHO_OFF) {
+            char *pass = tsux_getpass(msg[i]->msg);
+            if (pass) {
+                (*resp)[i].resp = pass;
+            }
+        } else if (msg[i]->msg_style == PAM_PROMPT_ECHO_ON) {
+            char input[256];
+            printf("\x1b[1;33m%s\x1b[0m", msg[i]->msg);
+            if (fgets(input, sizeof(input), stdin)) {
+                input[strcspn(input, "\n")] = '\0';
+                (*resp)[i].resp = strdup(input);
+            }
+        } else if (msg[i]->msg_style == PAM_TEXT_INFO) {
+            printf("\x1b[0;35mINFO\x1b[0m: %s\n", msg[i]->msg);
+        } else if (msg[i]->msg_style == PAM_ERROR_MSG) {
+            fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: %s\n", msg[i]->msg);
+        }
+    }
     return PAM_SUCCESS;
 }
 
@@ -180,26 +159,26 @@ int get_privileges(uid_t uid)
 {
     struct passwd *pw = getpwuid(uid);
     if (!pw) {
-        fprintf(stderr, "ERROR: getpwuid\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: getpwuid failed\n");
         return -1;
     }
 
     if (initgroups(pw->pw_name, pw->pw_gid) != 0) {
-        fprintf(stderr, "ERROR: initgroups\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: initgroups failed\n");
         return -1;
     }
 
     if (setgid(pw->pw_gid) != 0) {
-        fprintf(stderr, "ERROR: setgid\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: setgid failed\n");
         return -1;
     }
 
     if (setuid(uid) != 0) {
-        fprintf(stderr, "ERROR: setuid\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: setuid failed\n");
         return -1;
     }
 
-    printf("\x1b[0;35mINFO\x1b[0m: Privileges switched successfully\n\n");
+    printf("\x1b[1;32mSUCCESS\x1b[0m: Privileges switched to UID %d successfully\n\n", uid);
     return 0;
 }
 
@@ -218,12 +197,12 @@ int minimal_exec(char *command)
                (char *[]) { command, NULL },
                minimal_env);
 
-        fprintf(stderr, "ERROR: command execution failed\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: command execution failed\n");
         _exit(1);
     }
 
     if (pid < 0) {
-        fprintf(stderr, "ERROR: can't fork process\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: can't fork process\n");
         return -1;
     }
 
@@ -236,7 +215,6 @@ int full_exec(char *shell, char **argv)
     pid_t pid = fork();
 
     if (pid == 0) {
-
         size_t len = 0;
         for (int i = 2; argv[i]; i++)
             len += strlen(argv[i]) + 1;
@@ -255,7 +233,7 @@ int full_exec(char *shell, char **argv)
 
         execve(shell, sh_argv, environ);
 
-        fprintf(stderr, "ERROR: command execution failed\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: command execution failed\n");
         _exit(1);
     }
 
@@ -295,13 +273,13 @@ char *uid2nam(uid_t uid)
 int main(int argc, char **argv)
 {
     if (argc <= MIN_ARGS) {
-        fprintf(stderr, "ERROR: not enough arguments, minimum 2\n\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: not enough arguments, minimum 2\n\n");
         print_help();
         return 2;
     }
 
     if (!uid_allow_check(getuid())) {
-        fprintf(stderr, "ERROR: user id not in /etc/tsux.allow\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: user id %d not in /etc/tsux.allow\n", getuid());
         return 3;
     }
 
@@ -310,7 +288,7 @@ int main(int argc, char **argv)
 
     if (!authenticate(user)) {
         free(user);
-        fprintf(stderr, "ERROR: Auth failed\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: Authentication failed\n");
         return 1;
     }
 
@@ -320,7 +298,7 @@ int main(int argc, char **argv)
     unsigned long loginto = strtoul(argv[1], &end, 10);
 
     if (end == argv[1] || *end != '\0') {
-        fprintf(stderr, "ERROR: invalid uid\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: invalid uid selection\n");
         return 3;
     }
 
@@ -330,7 +308,7 @@ int main(int argc, char **argv)
     char *usershell = getshell(loginto);
 
     if (!usershell) {
-        fprintf(stderr, "ERROR: invalid shell\n");
+        fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: invalid target shell\n");
         return 3;
     }
 
