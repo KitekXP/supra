@@ -8,8 +8,8 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <security/pam_appl.h>
-#include <security/pam_misc.h>
+#include "security/pam_appl.h"
+#include "security/pam_misc.h"
 #include <grp.h>
 #include <termios.h>
 #include <errno.h>
