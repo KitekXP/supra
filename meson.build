@@ -30,7 +30,7 @@ run_target(
   	files('packager.sh'),
   	meson.project_name(),
   	tsux_exec.full_path(),
-  	meson.get_external_property('strip')
+  	find_program('strip').full_path()
   ],
   depends: tsux_exec
 )

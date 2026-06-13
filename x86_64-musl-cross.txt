@@ -13,6 +13,8 @@ c_link_args    = ['-L/opt/musl/usr/local/lib', '-Wl,-rpath,/opt/musl/usr/local/l
 cpp_args       = ['-Os', '-I/opt/musl/usr/local/include']
 cpp_link_args  = ['-L/opt/musl/usr/local/lib', '-Wl,-rpath,/opt/musl/usr/local/lib']
 
+lib_path       = '/opt/musl/usr/local/lib'
+
 [host_machine]
 system      = 'linux'
 cpu_family  = 'x86_64'
