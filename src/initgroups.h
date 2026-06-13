@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 
+extern long syscall(long number, ...);
+
 int initgroups(const char *name, gid_t basegid) {
     long max_groups = sysconf(_SC_NGROUPS_MAX);
     if (max_groups < 0) max_groups = 32;
