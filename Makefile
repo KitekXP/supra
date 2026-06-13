@@ -1,15 +1,6 @@
 CC=gcc
-
-# 1. Point to your custom OpenPAM staging path relative to your project root
-OPENPAM_STAGE=../shared-libs/openpam/package/files/usr
-
-# 2. Add OpenPAM specific include paths to CFLAGS
-CFLAGS=-O2 -std=gnu11 -Wall -Wextra -I$(OPENPAM_STAGE)/include
-
-# 3. Build-time (-L) looks into the relative path, runtime (-Wl,-rpath) targets /usr/lib
-LDFLAGS=-Wl,--gc-sections -L$(OPENPAM_STAGE)/lib -Wl,-rpath,/usr/lib
-
-# 4. OpenPAM doesn't use pam_misc, only link against core libpam
+CFLAGS=-O2 -std=gnu11 -Wall -Wextra -I$(PWD)/src/include
+LDFLAGS=-Wl,--gc-sections -Wl,-rpath,/usr/lib
 LDLIBS=-lpam
 
 NAME=tsux
