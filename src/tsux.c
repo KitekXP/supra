@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
+
 // Quite a bit of includes
 #include <stddef.h>
 #include <stdlib.h>
@@ -12,6 +14,7 @@
 #include <grp.h>
 #include <termios.h>
 #include <errno.h>
+#include "initgroups.h"
 
 // Include the config header
 #include "config.h"
