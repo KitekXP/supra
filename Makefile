@@ -1,7 +1,6 @@
-CC=gcc
-CFLAGS=-O2 -std=gnu11 -Wall -Wextra -I$(PWD)/src/include
+CFLAGS=-O2 -std=gnu11 -Wall -Wextra
 LDFLAGS=-Wl,--gc-sections -Wl,-rpath,/usr/lib
-LDLIBS=-lpam
+LDLIBS=
 
 NAME=tsux
 VERSION=1.0.0
