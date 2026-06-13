@@ -257,22 +257,6 @@ char *getshell(uid_t uid)
     return pw->pw_shell;
 }
 
-int nam2uid(char *name)
-{
-    struct passwd *pw = getpwnam(name);
-    if (!pw) return -1;
-
-    return pw->pw_uid;
-}
-
-char *uid2nam(uid_t uid)
-{
-    struct passwd *pw = getpwuid(uid);
-    if (!pw || !pw->pw_name) return NULL;
-
-    return strdup(pw->pw_name);
-}
-
 int main(int argc, char **argv)
 {
     if (argc <= MIN_ARGS) {
@@ -285,8 +269,8 @@ int main(int argc, char **argv)
         fprintf(stderr, "\x1b[1;31mERROR\x1b[0m: user id %d not in /etc/tsux.allow\n", getuid());
         return 3;
     }
-
-    char *user = uid2nam(getuid());
+	struct passwd *pw = getpwuid(getuid());
+    char *user = pw->pw_name;
     if (!user) return 3;
 
     if (!authenticate(user)) {
