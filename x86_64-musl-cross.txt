@@ -7,10 +7,10 @@ strip   = '/opt/musl/bin/x86_64-linux-musl-strip'
 
 [properties]
 sys_root       = 'package/files'
-c_args         = ['-Oz', '-I/opt/musl/usr/local/include']
+c_args         = ['-Os', '-I/opt/musl/usr/local/include']
 c_link_args    = ['-L/opt/musl/usr/local/lib', '-Wl,-rpath,/opt/musl/usr/local/lib']
 
-cpp_args       = ['-Oz', '-I/opt/musl/usr/local/include']
+cpp_args       = ['-Os', '-I/opt/musl/usr/local/include']
 cpp_link_args  = ['-L/opt/musl/usr/local/lib', '-Wl,-rpath,/opt/musl/usr/local/lib']
 
 [host_machine]
