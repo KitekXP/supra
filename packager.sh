@@ -4,12 +4,12 @@
 set -e
 
 NAME="$1"
-BUILD_BIN="$2"
 STRIP_TOOL="$3"
 
 PKGROOT="package"
 SYSROOT="$PKGROOT/files"
 BIN_DEST="$SYSROOT/usr/bin"
+BUILD_BIN="build/$NAME"
 
 
 printf "%s" "--> Cleaning old package source..."
